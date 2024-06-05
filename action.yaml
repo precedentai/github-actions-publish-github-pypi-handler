@@ -1,49 +1,56 @@
-name: GH-PyPI-Publish
-description: 'Publishes a Python package to github-hosted PyPI'
+name: PyPI-Publisher-Handler
+description: 'Creates a PR to upsert the given package to the PyPI repo'
 
 inputs:
-  pypi-github-org:
-    description: "GitHub hosted PyPI repo's org"
+  name:
+    description: 'Name of the package'
+    required: true
+  
+  version:
+    description: 'Version of the package'
     required: true
 
-  pypi-github-repo:
-    description: 'GitHub hosted PyPI repo'
+  archive_url:
+    description: 'URL to the package archive'
+    required: true
+
+  pypi_base_url:
+    description: 'Base URL of the PyPI repo.'
     required: true
 
   github-token:
-    description: 'GitHub token to use for triggering the publish workflow in the PyPI repo'
-    required: true
-
-  pypi-github-user:
-    description: 'GitHub user to publish the package'
+    description: 'GitHub token to use for triggering the publish workflow in the PyPI repo. If not provided, the default token will be used.'
     required: false
-    default: 'pypi-publisher[bot]'
-
-  pypi-github-workflow-filename:
-    description: 'GitHub workflow filename to trigger'
-    required: false
-    default: 'publish-trigger.yaml'
-
-  pypi-github-workflow-ref:
-    description: 'GitHub branch/ref to use when triggering the workflow'
-    required: false
-    default: 'main'
 
   checkout:
     description: 'Checkout the repo'
     required: false
     default: 'true'
 
-  # python version to use
   python-version:
     description: 'Python version to use'
-    required: true
+    required: false
     default: '3.8'
 
-  toml-file:
-    description: 'Path to the toml file'
+  commit_branch:
+    description: 'Branch to commit the changes to. Set to "auto" to create a new branch for each commit'
     required: false
-    default: 'pyproject.toml'
+    default: 'auto'
+
+  pypi_root_dir:
+    description: 'Root directory of the PyPI repo. This is the directory where the package will be upserted.'
+    required: false
+    default: 'pypi'
+
+  pypi-github-user-email:
+    description: 'GitHub user email to use for committing the changes'
+    required: false
+    default: 'github-actions[bot]@users.noreply.github.com'
+
+  pypi-github-user-name:
+    description: 'GitHub user name to use for committing the changes'
+    required: false
+    default: 'github-actions[bot]'
 
 
 
@@ -77,7 +84,9 @@ runs:
     - name: commit changes
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.github-token }}
+       # use github.token if inputs.github-token not provided
+        GH_TOKEN_INPUT: "${{ inputs.github-token }}"
+        GH_TOKEN_DEFAULT: "${{ github.token }}"
         python_service_name: "${{ inputs.name }}"
         python_service_version: "${{ inputs.version }}"
         python_service_archive_url: "${{ inputs.archive_url }}"
@@ -86,6 +95,16 @@ runs:
         base_url: ${{ inputs.pypi_base_url }}
         GITHUB_ACTION_PATH: ${{ github.action_path }}
       run: |
+        echo "Set up GH_TOKEN"
+        GH_TOKEN="${GH_TOKEN_DEFAULT}"
+        if [ -n "${GH_TOKEN_INPUT}" ]; then
+          echo "using GH_TOKEN_INPUT"
+          GH_TOKEN="${GH_TOKEN_INPUT}"
+        else
+          echo "using GH_TOKEN_DEFAULT"
+        fi
+        export GH_TOKEN
+        
         echo "configure git"
         git config user.email ${{ inputs.pypi-github-user-email }}
         git config user.name ${{ inputs.pypi-github-user-name }}
