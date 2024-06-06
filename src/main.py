@@ -72,7 +72,7 @@ def update_package_index(package_dir, package_name, version, archive_url, archiv
 
         link = f"<a href='{archive_url}#egg={package_name}-{version}'>"
 
-        link=f"{link}\n  {archive_url}\n</a>"
+        link=f"{link}\n  {package_name}-{version}\n</a>"
         version_info = f"({version}, {datetime.now().isoformat()})"
         print(f"Link: {link}")
         print(f"Version info: {version_info}")
