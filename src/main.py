@@ -66,6 +66,9 @@ def update_package_index(package_dir, package_name, version, archive_url):
         # Generate the hash value for the archive URL
         # fetch the file at archive_url
         local_file_path = os.path.join(package_dir, f"{version}.tar.gz")
+        print(f"Fetching archive from {archive_url} to {local_file_path}.")
+        os.system(f"curl -L {archive_url} -o {local_file_path}")
+        
         
         # Generate the hash value for the file
         print(f"Generating hash value for {local_file_path}.")
