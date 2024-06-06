@@ -186,11 +186,13 @@ runs:
         echo "creating PR"
         pr_title="PyPI - Upsert Package: ${{ inputs.name }} - ${{ inputs.version }}"
         pr_body="The package has a version update to be published to PyPI.
+        <pre><code>
         {
           \"name\": \"${{ inputs.name }}\",
           \"version\": \"${{ inputs.version }}\",
           \"archive_url\": \"${{ inputs.archive_url }}\"
         }
+        </code></pre>
 
         This PR was created by a [workflow](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${{ github.run_id }}) triggered by a commit [${GITHUB_SHA}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}).
         "
