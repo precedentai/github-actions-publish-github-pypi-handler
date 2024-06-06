@@ -32,7 +32,7 @@ def update_root_index(index_path, package_name, base_url):
             full_url = f"{package_name}/"
         else:
             full_url = f"{base_url}/{package_name}/"
-            
+
         print(f"Checking if package name is in index.")
         if f'href="{full_url}"' not in index_html:
             # Insert the new package link before the closing body tag
@@ -64,11 +64,13 @@ def update_package_index(package_dir, package_name, version, archive_url, archiv
         hash_value = archive_sha256
         # Generate the link and version info
 
-        # if hash value is not provided, attach to link
-        if not hash_value:
-            link = f"<a href='{archive_url}'>"
-        else:
-            link = f"<a href='{archive_url}#sha256={hash_value}'>"
+        # # if hash value is not provided, attach to link
+        # if not hash_value:
+        #     link = f"<a href='{archive_url}'>"
+        # else:
+        #     link = f"<a href='{archive_url}#sha256={hash_value}'>"
+
+        link = f"<a href='{archive_url}#egg={package_name}-{version}'>"
 
         link=f"{link}\n  {archive_url}\n</a>"
         version_info = f"({version}, {datetime.now().isoformat()})"
