@@ -165,7 +165,7 @@ runs:
         # tmp file for commit message
         commit_message_file="$(mktemp)"
         echo "PyPI Package Upsert" > "${commit_message_file}"
-        echo "{ \"name\": \"${{ inputs.name }}\", \"version\": \"${{ inputs.version }}\", \"archive_url\": \"${{ inputs.archive_url }}\" }" >> "${commit_message_file}"
+        echo "{ \"name\": \"${{ inputs.name }}\", \"version\": \"${{ inputs.version }}\", \"archive_url\": \"${{ inputs.archive_url }}\", \"archive_sha256\": \"${{ inputs.archive_sha256 }}\" }" >> "${commit_message_file}"
 
         commit_message="$(cat ${commit_message_file})"
 
