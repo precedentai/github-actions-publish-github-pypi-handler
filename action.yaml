@@ -14,6 +14,10 @@ inputs:
     description: 'URL to the package archive'
     required: true
 
+  archive_sha256:
+    description: 'SHA256 of the package archive'
+    required: false
+
   pypi_base_url:
     description: 'Base URL of the PyPI repo.'
     required: true
@@ -75,6 +79,7 @@ runs:
         python_service_name: "${{ inputs.name }}"
         python_service_version: "${{ inputs.version }}"
         python_service_archive_url: "${{ inputs.archive_url }}"
+        python_service_archive_sha256: "${{ inputs.archive_sha256 }}"
         commit_branch: "${{ inputs.commit_branch }}"
         root_dir: ${{ inputs.pypi_root_dir }}
         base_url: ${{ inputs.pypi_base_url }}

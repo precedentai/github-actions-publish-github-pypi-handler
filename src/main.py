@@ -11,14 +11,6 @@ def normalize(name):
     """Normalize package names according to the specification."""
     return re.sub(r"[-_.]+", "-", name).lower()
 
-def generate_file_hash(file_path, hash_function="sha256"):
-    """Generate a hash for the file."""
-    hash_func = hashlib.new(hash_function)
-    with open(file_path, 'rb') as file:
-        while chunk := file.read(8192):
-            hash_func.update(chunk)
-    return hash_func.hexdigest()
-
 def update_root_index(index_path, package_name, base_url):
     try:
         # Read the existing index data
@@ -49,13 +41,14 @@ def update_root_index(index_path, package_name, base_url):
     except Exception as e:
         print(f"An error occurred while upserting the index: {e}")
 
-def update_package_index(package_dir, package_name, version, archive_url):
+def update_package_index(package_dir, package_name, version, archive_url, archive_sha256):
     try:
         print("update_package_index:")
         print(f"package_dir: {package_dir}")
         print(f"package_name: {package_name}")
         print(f"version: {version}")
         print(f"archive_url: {archive_url}")
+        print(f"archive_sha256: {archive_sha256}")
 
         # Ensure the package directory exists
         print(f"Ensuring package directory {package_dir} exists.")
@@ -63,25 +56,16 @@ def update_package_index(package_dir, package_name, version, archive_url):
         package_index_path = os.path.join(package_dir, "index.html")
         print(f"Updating package index at {package_index_path}.")
 
-        # Generate the hash value for the archive URL
-        # fetch the file at archive_url
-        local_file_path = os.path.join(package_dir, f"{version}.tar.gz")
-        print(f"Fetching archive from {archive_url} to {local_file_path}.")
-        os.system(f"curl -L {archive_url} -o {local_file_path}")
-        
-        
-        # Generate the hash value for the file
-        print(f"Generating hash value for {local_file_path}.")
-        hash_value = generate_file_hash(local_file_path)
-
-        # remove the file
-        print(f"Removing {local_file_path}.")
-        os.remove(local_file_path)
-
-
-
+        hash_value = archive_sha256
         # Generate the link and version info
-        link = f"<a href='{archive_url}#sha256={hash_value}'>{archive_url}</a>"
+
+        # if hash value is not provided, attach to link
+        if not hash_value:
+            link = f"<a href='{archive_url}'>"
+        else:
+            link = f"<a href='{archive_url}#sha256={hash_value}'>"
+
+        link=f"{link}\n  {archive_url}\n</a>"
         version_info = f"({version}, {datetime.now().isoformat()})"
         print(f"Link: {link}")
         print(f"Version info: {version_info}")
@@ -132,7 +116,7 @@ def update_package_index(package_dir, package_name, version, archive_url):
     except Exception as e:
         print(f"An error occurred while upserting the package index: {e}")
 
-def upsert_package(root_dir, package_name, version, archive_url, base_url):
+def upsert_package(root_dir, package_name, version, archive_url, archive_sha256, base_url):
     package_name_normalized = normalize(package_name)
     print(f"Upserting package {package_name_normalized} version {version} from {archive_url}.")
 
@@ -146,7 +130,7 @@ def upsert_package(root_dir, package_name, version, archive_url, base_url):
 
 
     package_dir = os.path.join(root_dir, package_name_normalized)
-    update_package_index(package_dir, package_name_normalized, version, archive_url)
+    update_package_index(package_dir, package_name_normalized, version, archive_url, archive_sha256)
 
 # set up main
 if __name__ == "__main__":
@@ -160,11 +144,13 @@ if __name__ == "__main__":
     package_name = os.environ.get('python_service_name')
     version = os.environ.get('python_service_version')
     archive_url = os.environ.get('python_service_archive_url')
+    archive_sha256 = os.environ.get('python_service_archive_sha256')
 
     print(f"root_dir: {root_dir}")
     print(f"package_name: {package_name}")
     print(f"version: {version}")
     print(f"archive_url: {archive_url}")
+    print(f"archive_sha256: {archive_sha256}")
     base_url = os.environ.get('base_url')
     print("calling upsert_package")
-    upsert_package(root_dir, package_name, version, archive_url, base_url)
+    upsert_package(root_dir, package_name, version, archive_url, archive_sha256, base_url)
