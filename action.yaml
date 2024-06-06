@@ -20,7 +20,7 @@ inputs:
 
   pypi_base_url:
     description: 'Base URL of the PyPI repo.'
-    required: true
+    required: false
 
   github-token:
     description: 'GitHub token to use for triggering the publish workflow in the PyPI repo. If not provided, the default token will be used.'

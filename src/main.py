@@ -27,7 +27,12 @@ def update_root_index(index_path, package_name, base_url):
             index_html = "<!DOCTYPE html><html><body></body></html>"
 
         # Check if the package name already exists in the index
-        full_url = f"{base_url}/{package_name}/"
+        # if base_url is not provided
+        if not base_url:
+            full_url = f"{package_name}/"
+        else:
+            full_url = f"{base_url}/{package_name}/"
+            
         print(f"Checking if package name is in index.")
         if f'href="{full_url}"' not in index_html:
             # Insert the new package link before the closing body tag
