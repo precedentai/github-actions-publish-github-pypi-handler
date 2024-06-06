@@ -64,11 +64,18 @@ def update_package_index(package_dir, package_name, version, archive_url):
         print(f"Updating package index at {package_index_path}.")
 
         # Generate the hash value for the archive URL
-        # todo: fetch the file to generate the hash?
-        # hash_value = generate_file_hash(archive_url)
-        # use version for testing
-        hash_value = version
+        # fetch the file at archive_url
+        local_file_path = os.path.join(package_dir, f"{version}.tar.gz")
         
+        # Generate the hash value for the file
+        print(f"Generating hash value for {local_file_path}.")
+        hash_value = generate_file_hash(local_file_path)
+
+        # remove the file
+        print(f"Removing {local_file_path}.")
+        os.remove(local_file_path)
+
+
 
         # Generate the link and version info
         link = f"<a href='{archive_url}#sha256={hash_value}'>{archive_url}</a>"
