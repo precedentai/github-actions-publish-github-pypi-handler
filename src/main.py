@@ -39,7 +39,7 @@ def update_root_index(index_path, package_name, base_url):
         print(f"Checking if package name is in index.")
         if f'href="{full_url}"' not in index_html:
             # Insert the new package link before the closing body tag
-            index_html = index_html.replace("</body>", f'\n<a href="{full_url}">{package_name}</a></body>')
+            index_html = index_html.replace("</body>", f'\n<a href="{full_url}">{package_name}</a>\n</body>')
         
         # Write the updated index data back to the file
         with open(index_path, 'w') as file:
@@ -89,7 +89,7 @@ def update_package_index(package_dir, package_name, version, archive_url):
             if link not in index_html:
                 print(f"Link not in index_html.")
                 # Insert the new link and version info before the closing ul tag
-                index_html = index_html.replace("</ul>", f"\n<li>{link} {version_info}</li></ul>")
+                index_html = index_html.replace("</ul>", f"\n<li>\n  {link}\n  {version_info}\n</li></ul>")
             else:
                 print(f"Link already in index_html.")
         else:
@@ -104,7 +104,10 @@ def update_package_index(package_dir, package_name, version, archive_url):
         <h1>{package_name}</h1>
         <p>Generated on {datetime.now().isoformat()}.</p>
         <ul>
-            <li>{link} {version_info}</li>
+            <li>
+                {link}
+                {version_info}
+            </li>
         </ul>
     </body>
 </html>"""
