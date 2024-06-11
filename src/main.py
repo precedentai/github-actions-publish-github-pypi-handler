@@ -25,6 +25,15 @@ def update_root_index(index_path, package_name, base_url):
         else:
             print(f"Index does not exist at {index_path}.")
             index_html = "<!DOCTYPE html><html><body></body></html>"
+            index_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Private PyPI Index</title>
+</head>
+<body>
+</body>
+</html>"""
 
         # Check if the package name already exists in the index
         # if base_url is not provided
@@ -97,20 +106,21 @@ def update_package_index(package_dir, package_name, version, archive_url, archiv
             # Create new HTML content if the file doesn't exist
             print(f"Package index does not exist at {package_index_path}.")
             index_html = f"""<!DOCTYPE html>
-<html>
-    <head>
-        <title>{package_name}</title>
-    </head>
-    <body>
-        <h1>{package_name}</h1>
-        <p>Generated on {datetime.now().isoformat()}.</p>
-        <ul>
-            <li>
-                {link}
-                {version_info}
-            </li>
-        </ul>
-    </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{package_name}</title>
+</head>
+<body>
+    <h1>{package_name}</h1>
+    <p>Generated on {datetime.now().isoformat()}.</p>
+    <ul>
+        <li>
+            {link}
+            {version_info}
+        </li>
+    </ul>
+</body>
 </html>"""
 
         # Write the updated or new HTML content to the file
