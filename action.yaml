@@ -144,9 +144,10 @@ runs:
         branch_is_new=""
         inputs_commit_branch_exists=$(git branch --list "${{ inputs.commit_branch }}")
         if [ "${{ inputs.commit_branch }}" == "auto" ]; then
-          echo "git checkout -b pypi-${{ github.run_id }}"
           # new branch name should be 'pypi-{run_id}-{run_number}'
           new_branch_name="pypi-${{ github.run_id }}-${{ github.run_number }}"
+          
+          echo "git checkout -b ${new_branch_name}"
           git checkout -b "${new_branch_name}"
           branch_is_new="true"
         else
