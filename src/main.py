@@ -52,7 +52,7 @@ default_package_index_template_html = """<!DOCTYPE html>
 </html>"""
 
 default_package_item_template_html="""<li>
-    <a href="{archive_url}#egg={package_name}-{version}">
+    <a href="{archive_url}">
         {package_name}-{version}
     </a>
     ({version}, {timestamp})
