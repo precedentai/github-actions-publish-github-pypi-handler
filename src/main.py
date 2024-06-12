@@ -145,18 +145,18 @@ def update_root_index(index_path, package_name, base_url):
     try:
         # Read the existing index data
         print(f"Reading existing index at {index_path}.")
+        existing_html = ""
         if os.path.exists(index_path):
             print(f"Index exists at {index_path}.")
 
             print(f"Opening index at {index_path}.")
             with open(index_path, 'r') as file:
                 print(f"Reading index at {index_path}.")
-                index_html = file.read()
+                existing_html = file.read()
         else:
             print(f"Index does not exist at {index_path}.")
 
-
-        index_html = get_root_index_html(package_name, base_url, index_html)
+        index_html = get_root_index_html(package_name, base_url, existing_html)
 
         # Write the updated index data back to the file
         with open(index_path, 'w') as file:
