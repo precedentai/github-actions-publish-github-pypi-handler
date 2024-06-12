@@ -224,6 +224,8 @@ def update_package_index(package_dir, package_name, version, archive_url, archiv
         # get the package index path
         package_index_path = os.path.join(package_dir, "index.html")
 
+        existing_html = ""
+
         # Read the existing index data
         print(f"Reading existing index at {package_index_path}.")
         if os.path.exists(package_index_path):
@@ -232,11 +234,11 @@ def update_package_index(package_dir, package_name, version, archive_url, archiv
             print(f"Opening index at {package_index_path}.")
             with open(package_index_path, 'r') as file:
                 print(f"Reading index at {package_index_path}.")
-                index_html = file.read()
+                existing_html = file.read()
         else:
             print(f"Index does not exist at {package_index_path}.")
 
-        index_html = get_package_index_html(package_name, version, archive_url, archive_sha256, index_html)
+        index_html = get_package_index_html(package_name, version, archive_url, archive_sha256, existing_html)
 
         # Write the updated index data back to the file
         with open(package_index_path, 'w') as file:
