@@ -145,7 +145,9 @@ runs:
         inputs_commit_branch_exists=$(git branch --list "${{ inputs.commit_branch }}")
         if [ "${{ inputs.commit_branch }}" == "auto" ]; then
           echo "git checkout -b pypi-${{ github.run_id }}"
-          git checkout -b "pypi-${{ github.run_id }}"
+          # new branch name should be 'pypi-{run_id}-{run_number}'
+          new_branch_name="pypi-${{ github.run_id }}-${{ github.run_number }}"
+          git checkout -b "${new_branch_name}"
           branch_is_new="true"
         else
           # check if branch exists remotely, and create it if it does not
