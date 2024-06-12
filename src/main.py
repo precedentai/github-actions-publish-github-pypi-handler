@@ -65,6 +65,7 @@ def get_template(template_filename, default_template):
         template_path_a = f"{github_action_path}/{pypi_handler_templates_dir}/{template_filename}"
         template_path_w = f"{github_workspace}/{pypi_handler_templates_dir}/{template_filename}"
 
+        html_template = None
         print(f"Gathering templates.")
         # if there is a file in the workspace, use that as the index
         print(f"  looking for template in workspace: {template_path_w}")
