@@ -116,7 +116,7 @@ def get_root_index_html(package_name, base_url, existing_html=""):
     if not base_url:
         full_url = f"{package_name}/"
     else:
-        full_url = f"{base_url}/{package_name}/"
+        full_url = f"{base_url}/{package_name}/index.html"
 
 
     # if existing_html is not provided, use the template
