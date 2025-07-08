@@ -1,6 +1,7 @@
 import os
 import hashlib
 import re
+import shutil
 from datetime import datetime
 
 
@@ -265,6 +266,41 @@ def upsert_package(root_dir, package_name, version, archive_url, archive_sha256,
     package_dir = os.path.join(root_dir, package_name_normalized)
     update_package_index(package_dir, package_name_normalized, version, archive_url, archive_sha256)
 
+
+def upsert_wheel_package(root_dir, package_name, version, archive_sha256, base_url):
+    # Find all .whl files in dist/
+    dist_dir = "dist"
+    wheels = [file for file in os.listdir(dist_dir) if file.endswith(".whl")]
+
+    if not wheels:
+        print("No .whl files found in dist/")
+        return
+
+    # Prepare internal PyPI directory
+    package_name_normalized = normalize(package_name)
+    package_dir = os.path.join(root_dir, package_name_normalized)
+    ensure_dir_exists(package_dir)
+
+    # Upsert each wheel into internal PyPI directory
+    for filename in wheels:
+        wheel_path = os.path.join(dist_dir, filename)
+        destination = os.path.join(package_dir, filename)
+
+        # Copy wheel into internal PyPI structure
+        shutil.copy(wheel_path, destination)
+
+        archive_url = f"{base_url}/{package_name_normalized}/{filename}"
+
+        upsert_package(
+            root_dir=root_dir,
+            package_name=package_name,
+            version=version,
+            archive_url=archive_url,
+            archive_sha256=archive_sha256,
+            base_url=base_url
+        )
+
+
 # set up main
 if __name__ == "__main__":
 
@@ -287,3 +323,6 @@ if __name__ == "__main__":
     base_url = os.environ.get('base_url')
     print("calling upsert_package")
     upsert_package(root_dir, package_name, version, archive_url, archive_sha256, base_url)
+
+    #TODO how to test
+    upsert_wheel_package(root_dir, package_name, version, archive_sha256, base_url)

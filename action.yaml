@@ -73,6 +73,13 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
+    - name: Build wheel
+      shell: bash
+      run: |
+        pip install --upgrade build
+        python -m build --wheel
+        ls -lh dist/
+
     - name: upsert-package
       shell: bash
       env:
