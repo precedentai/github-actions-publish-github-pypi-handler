@@ -73,6 +73,69 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
+    - name: Extract calling GitHub repository from archive_url
+      shell: bash
+      env:
+        ARCHIVE_URL: ${{ inputs.archive_url }}
+      run: |
+        # Extract the GitHub repo path from the archive URL
+        echo "Original archive URL: $ARCHIVE_URL"
+    
+        # Remove prefix and suffix
+        REPO_PATH=$(echo "$ARCHIVE_URL" | sed -E 's#.*github.com/([^\.]+/[^\.]+)\.git.*#\1#')
+    
+        echo "Extracted REPO_PATH: $REPO_PATH"
+    
+        # Export so future steps can use
+        echo "REPO_PATH=$REPO_PATH" >> "$GITHUB_ENV"
+
+    - name: Download wheel(s) from release
+      shell: bash
+      env:
+        # use github.token if inputs.github-token not provided
+        GH_TOKEN_INPUT: "${{ inputs.github-token }}"
+        GH_TOKEN_DEFAULT: "${{ github.token }}"
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: v${{ inputs.version }}
+        REPO: ${{ env.REPO_PATH }}
+      run: |
+        echo "Set up GH_TOKEN"
+        GH_TOKEN="${GH_TOKEN_DEFAULT}"
+        if [ -n "${GH_TOKEN_INPUT}" ]; then
+          echo "using GH_TOKEN_INPUT"
+          GH_TOKEN="${GH_TOKEN_INPUT}"
+        else
+          echo "using GH_TOKEN_DEFAULT"
+        fi
+        export GH_TOKEN
+        
+        echo "Fetching wheel URLs from release $REPO@$TAG..."
+        echo "TAG: $TAG"
+        echo "REPO: $REPO"
+
+        gh release view "$TAG" \
+          --repo "$REPO" \
+          --json assets \
+          --jq '.assets[] | select(.name | endswith(".whl")) | .url' > urls.txt
+
+        echo "Downloading wheel(s)..."
+        mkdir -p dist/
+        cd dist/
+        while read -r url; do
+          echo "Downloading $url..."
+          curl -L -H "Authorization: token $GH_TOKEN" -O "$url"
+        done < ../urls.txt
+
+        echo "✔️ Downloaded files:"
+        ls -lh
+        
+        wheel_file=$(ls | grep '\.whl$' | head -n 1)
+        echo "Found wheel file: $wheel_file"
+
+        # Save to environment for future steps
+        echo "WHEEL_FILENAME=$wheel_file" >> $GITHUB_ENV
+
+
     - name: upsert-package
       shell: bash
       env:
@@ -83,7 +146,15 @@ runs:
         commit_branch: "${{ inputs.commit_branch }}"
         root_dir: ${{ inputs.pypi_root_dir }}
         base_url: ${{ inputs.pypi_base_url }}
-      run: python "${GITHUB_ACTION_PATH}/src/main.py"
+      run: |
+        # Determine which archive URL to use
+        if [ -n "$WHEEL_FILENAME" ]; then
+          echo "Using wheel filename as archive URL: $WHEEL_FILENAME"
+          export python_service_archive_url="$WHEEL_FILENAME"
+        fi
+        
+        echo "Running main.py with archive URL: $python_service_archive_url"  
+        python "${GITHUB_ACTION_PATH}/src/main.py"
 
     - name: commit changes
       shell: bash
