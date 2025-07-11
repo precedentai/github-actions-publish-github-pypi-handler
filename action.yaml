@@ -95,7 +95,6 @@ runs:
         # use github.token if inputs.github-token not provided
         GH_TOKEN_INPUT: "${{ inputs.github-token }}"
         GH_TOKEN_DEFAULT: "${{ github.token }}"
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TAG: v${{ inputs.version }}
         REPO: ${{ env.REPO_PATH }}
       run: |
