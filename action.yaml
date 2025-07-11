@@ -108,32 +108,40 @@ runs:
         fi
         export GH_TOKEN
         
-        echo "Fetching wheel URLs from release $REPO@$TAG..."
+        echo "Fetching wheel(s) from release $REPO@$TAG"
         echo "TAG: $TAG"
         echo "REPO: $REPO"
-
-        gh release view "$TAG" \
-          --repo "$REPO" \
-          --json assets \
-          --jq '.assets[] | select(.name | endswith(".whl")) | .url' > urls.txt
-
-        echo "Downloading wheel(s)..."
+    
         mkdir -p dist/
-        cd dist/
-        while read -r url; do
-          echo "Downloading $url..."
-          curl -L -H "Authorization: token $GH_TOKEN" -O "$url"
-        done < ../urls.txt
+    
+        gh release download "$TAG" \
+          --repo "$REPO" \
+          --pattern "*.whl" \
+          --dir dist/
 
-        echo "✔️ Downloaded files:"
-        ls -lh
+        echo "Downloaded files in dist/:"
+        ls -lh dist/
+    
+        wheel_file=$(ls dist/ | grep '\.whl$' | head -n 1)
+    
+        if [ -z "$wheel_file" ]; then
+          echo "No wheel file found in dist/"
+          exit 0  # Optional: don't fail workflow if no wheel
+        fi
         
-        wheel_file=$(ls | grep '\.whl$' | head -n 1)
         echo "Found wheel file: $wheel_file"
 
+        # Validate the wheel file (check if it's a valid ZIP)
+        echo "Validating wheel file integrity"
+        unzip -l "dist/$wheel_file" >/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+          echo "Invalid wheel file! Possibly corrupted or unauthorized download."
+          exit 1
+        fi
+
+        echo "Wheel file is valid."
         # Save to environment for future steps
         echo "WHEEL_FILENAME=$wheel_file" >> $GITHUB_ENV
-
 
     - name: upsert-package
       shell: bash
