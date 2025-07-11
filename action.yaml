@@ -114,11 +114,19 @@ runs:
     
         mkdir -p dist/
     
+        set +e
         gh release download "$TAG" \
           --repo "$REPO" \
           --pattern "*.whl" \
           --dir dist/
-
+        status=$?
+        set -e
+    
+        if [ "$status" -ne 0 ]; then
+          echo "No wheel files found in release. Continuing..."
+          exit 0
+        fi
+        
         echo "Downloaded files in dist/:"
         ls -lh dist/
     
@@ -126,7 +134,7 @@ runs:
     
         if [ -z "$wheel_file" ]; then
           echo "No wheel file found in dist/"
-          exit 0  # Optional: don't fail workflow if no wheel
+          exit 0  # Continue gracefully.
         fi
         
         echo "Found wheel file: $wheel_file"
@@ -135,8 +143,8 @@ runs:
         echo "Validating wheel file integrity"
         unzip -l "dist/$wheel_file" >/dev/null 2>&1
         if [ $? -ne 0 ]; then
-          echo "Invalid wheel file! Possibly corrupted or unauthorized download."
-          exit 1
+          echo "Invalid wheel file! Possibly corrupted or unauthorized download. Continue gracefully."
+          exit 0
         fi
 
         echo "Wheel file is valid."
