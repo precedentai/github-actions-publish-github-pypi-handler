@@ -155,6 +155,25 @@ runs:
         echo "Running main.py with archive URL: $python_service_archive_url"  
         python "${GITHUB_ACTION_PATH}/src/main.py"
 
+    - name: Copy wheel into PyPI/<repo>/ directory
+      shell: bash
+      env:
+        WHEEL_FILENAME: ${{ env.WHEEL_FILENAME }}
+        root_dir: ${{ inputs.pypi_root_dir }}
+        python_service_name: ${{ inputs.name }}
+      run: |
+        if [ ! -f "dist/${WHEEL_FILENAME}" ]; then
+          echo "No wheel file found at dist/${WHEEL_FILENAME}. Skipping copy step."
+          exit 0
+        fi
+    
+        target_dir="${root_dir}/${python_service_name}"
+        mkdir -p "$target_dir"
+        
+        cp "dist/${WHEEL_FILENAME}" "$target_dir/"
+        
+        echo "Copied $WHEEL_FILENAME to $target_dir"
+
     - name: commit changes
       shell: bash
       env:
