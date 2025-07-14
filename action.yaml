@@ -165,9 +165,13 @@ runs:
         # Determine which archive URL to use
         if [ -n "$WHEEL_FILENAME" ]; then
           echo "Using wheel filename as archive URL: $WHEEL_FILENAME"
+          echo "python_service_archive_url=$WHEEL_FILENAME" >> $GITHUB_ENV
           export python_service_archive_url="$WHEEL_FILENAME"
+        else
+          echo "Using input archive URL: $python_service_archive_url"
+          echo "python_service_archive_url=$python_service_archive_url" >> $GITHUB_ENV
         fi
-        
+
         echo "Running main.py with archive URL: $python_service_archive_url"  
         python "${GITHUB_ACTION_PATH}/src/main.py"
 
@@ -198,12 +202,14 @@ runs:
         GH_TOKEN_DEFAULT: "${{ github.token }}"
         python_service_name: "${{ inputs.name }}"
         python_service_version: "${{ inputs.version }}"
-        python_service_archive_url: "${{ inputs.archive_url }}"
+        python_service_archive_url: "${{ env.python_service_archive_url }}"
         python_service_archive_sha256: "${{ inputs.archive_sha256 }}"
         commit_branch: "${{ inputs.commit_branch }}"
         root_dir: ${{ inputs.pypi_root_dir }}
         base_url: ${{ inputs.pypi_base_url }}
         GITHUB_ACTION_PATH: ${{ github.action_path }}
+        pypi_github_user_email: "${{ inputs.pypi-github-user-email }}"
+        pypi_github_user_name: "${{ inputs.pypi-github-user-name }}"
       run: |
         echo "Set up GH_TOKEN"
         GH_TOKEN="${GH_TOKEN_DEFAULT}"
@@ -216,8 +222,8 @@ runs:
         export GH_TOKEN
         
         echo "configure git"
-        git config user.email ${{ inputs.pypi-github-user-email }}
-        git config user.name ${{ inputs.pypi-github-user-name }}
+        git config user.email "$pypi_github_user_email"
+        git config user.name "$pypi_github_user_name"
 
         echo "git status - before"
         git status
@@ -247,8 +253,8 @@ runs:
         echo "current_branch_name=${current_branch_name}"
 
         branch_is_new=""
-        inputs_commit_branch_exists=$(git branch --list "${{ inputs.commit_branch }}")
-        if [ "${{ inputs.commit_branch }}" == "auto" ]; then
+        inputs_commit_branch_exists=$(git branch --list "$commit_branch")
+        if [ "$commit_branch" == "auto" ]; then
           # new branch name should be 'pypi-{run_id}-{run_number}'
           new_branch_name="pypi-${{ github.run_id }}-${{ github.run_number }}"
           
@@ -258,12 +264,12 @@ runs:
         else
           # check if branch exists remotely, and create it if it does not
           if [ -z "${inputs_commit_branch_exists}" ]; then
-            echo "git checkout -b ${{ inputs.commit_branch }}"
-            git checkout -b "${{ inputs.commit_branch }}"
+            echo "git checkout -b $commit_branch"
+            git checkout -b "$commit_branch"
             branch_is_new="true"
           else
-            echo "git checkout ${{ inputs.commit_branch }}"
-            git checkout "${{ inputs.commit_branch }}"
+            echo "git checkout $commit_branch"
+            git checkout "$commit_branch"
           fi
         fi
         
@@ -273,7 +279,7 @@ runs:
         # tmp file for commit message
         commit_message_file="$(mktemp)"
         echo "PyPI Package Upsert" > "${commit_message_file}"
-        echo "{ \"name\": \"${{ inputs.name }}\", \"version\": \"${{ inputs.version }}\", \"archive_url\": \"${{ inputs.archive_url }}\", \"archive_sha256\": \"${{ inputs.archive_sha256 }}\" }" >> "${commit_message_file}"
+        echo "{ \"name\": \"$python_service_name\", \"version\": \"$python_service_version\", \"archive_url\": \"$python_service_archive_url\", \"archive_sha256\": \"$python_service_archive_sha256\" }" >> "${commit_message_file}"
 
         commit_message="$(cat ${commit_message_file})"
 
@@ -297,14 +303,14 @@ runs:
 
         # create a PR
         echo "creating PR"
-        pr_title="PyPI - Upsert Package: ${{ inputs.name }} - ${{ inputs.version }}"
+        pr_title="PyPI - Upsert Package: $python_service_name - $python_service_version"
         pr_body="The package has a version update to be published to PyPI.
         <pre><code>
         {
-          \"name\": \"${{ inputs.name }}\",
-          \"version\": \"${{ inputs.version }}\",
-          \"archive_url\": \"${{ inputs.archive_url }}\",
-          \"archive_sha256\": \"${{ inputs.archive_sha256 }}\"
+          \"name\": \"$python_service_name\",
+          \"version\": \"$python_service_version\",
+          \"archive_url\": \"$python_service_archive_url\",
+          \"archive_sha256\": \"$python_service_archive_sha256\"
         }
         </code></pre>
 
