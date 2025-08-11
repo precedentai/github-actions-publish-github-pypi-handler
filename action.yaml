@@ -187,7 +187,11 @@ runs:
           exit 0
         fi
     
-        target_dir="${root_dir}/${python_service_name}"
+        # Normalize per PEP 503: lowercase + replace [-_.]+ with single '-'
+        normalized_package_name="$(echo "$python_service_name" | tr '[:upper:]' '[:lower:]' | sed -E 's/[-_.]+/-/g')"
+
+        target_dir="${root_dir}/${normalized_package_name}"
+        
         mkdir -p "$target_dir"
         
         cp "dist/${WHEEL_FILENAME}" "$target_dir/"
